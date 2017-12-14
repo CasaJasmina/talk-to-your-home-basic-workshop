@@ -46,6 +46,13 @@
     entities:
       - switch.Davide
 
+
+remember to run 
+
+$ sudo systemctl restart home-assistant.service
+
+Every time you commit a change to the configuration.yaml file in order to see any changes on the UI
+
 */
 
 #include <ESP8266WiFi.h>
@@ -53,9 +60,9 @@
 
 // Update these with values suitable for your network.
 
-const char* ssid = "SSID";
-const char* password = "PASSWORD";
-const char* mqtt_server = "IP ADDRESS";
+const char* ssid = "OfficineInnesto";
+const char* password = "OfficineRulez";
+const char* mqtt_server = "192.168.0.108";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -75,6 +82,13 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+   digitalWrite(relayPin, HIGH);
+
+   delay(1000);
+
+    digitalWrite(relayPin, LOW);
+    delay(1000);
 }
 
 void setup_wifi() {
