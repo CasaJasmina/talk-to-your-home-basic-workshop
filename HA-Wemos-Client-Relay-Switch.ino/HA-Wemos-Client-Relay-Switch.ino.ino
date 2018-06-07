@@ -125,6 +125,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if ((char)payload[0] == '1') {
     Serial.println("Payload received");
     client.publish("relay/set/status", "1");
+    client.publish("office/light1/switch", "ON");
     digitalWrite(relayPin, HIGH);   // Turn the LED on (Note that LOW is the voltage level
     // but actually the LED is on; this is because
     // it is acive low on the ESP-01)
@@ -132,6 +133,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if((char)payload[0] == '0'){
     digitalWrite(relayPin, LOW);  // Turn the LED off by making the voltage HIGH
     client.publish("relay/set/status", "0");
+    client.publish("office/light1/switch", "OFF");
+
   }
 
 }

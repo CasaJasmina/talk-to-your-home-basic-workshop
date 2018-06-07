@@ -3,8 +3,11 @@
    Example testing sketch for various DHT humidity/temperature sensors
    Written by ladyada, public domain
 
-   Depends on Adafruit DHT Arduino library
-   https://github.com/adafruit/DHT-sensor-library
+   Depends on Adafruit DHT Unified library and Sensor Library
+  //   https://github.com/adafruit/DHT-sensor-library
+   https://github.com/adafruit/Adafruit_DHT_Unified
+   https://github.com/adafruit/Adafruit_Sensor
+
 */
 
 /*
@@ -21,6 +24,10 @@
     state_topic: 'sensorbox/sensorbox/temperature'
     name: 'Temperatura'
     unit_of_measurement: '°C'
+  - platform: mqtt
+    state_topic: 'sensorbox/sensorbox/humidity'
+    name: 'Umidita'
+    unit_of_measurement: '%'
 
 
   remember to run
@@ -37,9 +44,9 @@
 
 // Update these with values suitable for your network.
 
-const char* ssid = "SSID";
-const char* password = "PASSWORD";
-const char* mqtt_server = "ip";
+const char* ssid = "Genzio";
+const char* password = "Genziowifi";
+const char* mqtt_server = "192.168.1.101";
 
 const char* state_topic_1 = "sensorbox/sensorbox/temperature";
 const char* state_topic_2 = "sensorbox/sensorbox/humidity";
@@ -54,32 +61,25 @@ int value = 0;
 const long interval = 2000;  // pause for two seconds
 
 #define DHTPIN D4     // what pin we're connected to
+#define BUTTON_PIN D1 // Adding a push button
 
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11   // DHT 11
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
-// Connect pin 1 (on the left) of the sensor to +5V
-// NOTE: If using a board with 3.3V logic like an Arduino Due connect pin 1
-// to 3.3V instead of 5V!
-// Connect pin 2 of the sensor to whatever your DHTPIN is
-// Connect pin 4 (on the right) of the sensor to GROUND
-// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
-
-// Initialize DHT sensor.
-// Note that older versions of this library took an optional third parameter to
-// tweak the timings for faster processors.  This parameter is no longer needed
-// as the current DHT reading algorithm adjusts itself to work on faster procs.
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
   Serial.begin(115200);
   Serial.println("DHTxx test!");
 
+  pinMode(BUTTON_PIN, INPUT);
+
   dht.begin();
 
   setup_wifi();
+
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
@@ -140,7 +140,7 @@ void reconnect() {
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      // client.publish("sensorbox/sensorbox/temperature", dhtRead());
+//      client.publish("sensorbox/sensorbox/temperature", "abcd");//dhtRead());
       // ... and resubscribe
       // client.subscribe("relay/set");
     } else {
@@ -202,6 +202,18 @@ void loop() {
     Serial.print("Publish message: ");
     Serial.println(char(hic));
 
+    if (BUTTON_PIN == 1) {
+
+      // manda un comando
+      client.publish("relay/set", "1");
+
+    } else {
+
+      //  manda un altro comando
+      client.publish("relay/set", "0");
+
+
+    }
 
     char result_1[8]; // Buffer big enough for 7-character float
     dtostrf(hic, 6, 2, result_1); // Leave room for too large numbers!
@@ -209,8 +221,12 @@ void loop() {
     char result_2[8]; // Buffer big enough for 7-character float
     dtostrf(h, 6, 2, result_2); // Leave room for too large numbers!
 
+    Serial.println("missing message");
+    
     client.publish(state_topic_1, result_1);
     client.publish(state_topic_2, result_2);
+
+    
   }
 
   // Wait a few seconds between measurements.
